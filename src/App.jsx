@@ -585,6 +585,9 @@ export default function App() {
     }
 
     try {
+      // Request account access FIRST before switching chains
+      await targetProvider.request({ method: 'eth_requestAccounts' });
+
       const activeConfig = NETWORKS[selectedNetwork] || NETWORKS.arc;
       // Prompt user to add/switch network
       try {
@@ -617,9 +620,6 @@ export default function App() {
           throw switchError;
         }
       }
-
-      // Request account access if needed
-      await targetProvider.request({ method: 'eth_requestAccounts' });
 
       const tempProvider = new ethers.BrowserProvider(targetProvider);
       const tempSigner = await tempProvider.getSigner();
