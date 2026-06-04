@@ -258,9 +258,9 @@ export default function App() {
   // Market & Portfolio State
   const [markets, setMarkets] = useState(INITIAL_DEMO_MARKETS);
   const [userPortfolio, setUserPortfolio] = useState({
-    yesShares: { 0: 50 * 1e6, 3: 100 * 1e6 }, // User holds 50 YES on BTC, 100 YES on France
-    noShares: { 2: 200 * 1e6 }, // User holds 200 NO on G7 CBDC (resolved to NO!)
-    lpShares: { 0: 100 * 1e6 },  // User holds 100 LP on BTC
+    yesShares: {},
+    noShares: {},
+    lpShares: {},
     redeemedMarkets: {}
   });
 
@@ -352,9 +352,9 @@ export default function App() {
     } else if (isDemoMode) {
       setMarkets(INITIAL_DEMO_MARKETS);
       setUserPortfolio({
-        yesShares: { 0: 50 * 1e6, 3: 100 * 1e6 },
-        noShares: { 2: 200 * 1e6 },
-        lpShares: { 0: 100 * 1e6 },
+        yesShares: {},
+        noShares: {},
+        lpShares: {},
         redeemedMarkets: {}
       });
     }
@@ -543,12 +543,12 @@ export default function App() {
       const balanceVal = await fetchBalance(account, signer, selectedNetwork, usdcAddress);
       setUsdcBalance(balanceVal);
       
-      alert(`Swap thành công! Bạn đã nhận ${swapAmount} $ARC.`);
+      alert(`Nạp tiền thành công! Bạn đã nhận ${swapAmount} $ARC.`);
       setShowSwapModal(false);
       setSwapAmount('');
     } catch (err) {
       console.error(err);
-      alert("Swap thất bại: " + (err.message || err));
+      alert("Nạp tiền thất bại: " + (err.message || err));
     }
   };
 
@@ -1264,8 +1264,8 @@ export default function App() {
             onClick={() => setShowSwapModal(true)} 
             className="wallet-btn navbar-item-gradient"
           >
-            <ArrowRightLeft size={16} />
-            Swap
+            <DollarSign size={16} />
+            Deposit
           </button>
           
           {account && account.toLowerCase() === '0x5b950A7a251005b5e3720e1036b50aDddc0A31d8'.toLowerCase() && (
@@ -2035,22 +2035,22 @@ export default function App() {
         </div>
       )}
 
-      {/* Swap Modal */}
+      {/* Deposit Modal (formerly Swap) */}
       {showSwapModal && (
         <div className="modal-overlay" onClick={() => setShowSwapModal(false)}>
           <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ width: '400px', maxWidth: '95vw', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.5rem' }}>
-                <ArrowRightLeft size={24} style={{ color: 'var(--primary-color)' }} />
-                Swap to $ARC
+                <DollarSign size={24} style={{ color: 'var(--primary-color)' }} />
+                Deposit USDC
               </h2>
               <button className="close-btn" onClick={() => setShowSwapModal(false)}>&times;</button>
             </div>
             
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                <span>Pay USDC</span>
-                <span>Balance: {parseFloat(usdcBalance).toFixed(2)}</span>
+                <span>Deposit Amount</span>
+                <span>Wallet Balance: {parseFloat(usdcBalance).toFixed(2)}</span>
               </div>
               <div className="input-wrapper">
                 <span className="input-currency">USDC</span>
@@ -2065,13 +2065,13 @@ export default function App() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <ArrowRightLeft size={20} style={{ color: 'var(--text-muted)', transform: 'rotate(90deg)' }} />
+              <DollarSign size={20} style={{ color: 'var(--text-muted)' }} />
             </div>
 
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                <span>Receive $ARC</span>
-                <span>Balance: {parseFloat(arcBalance).toFixed(2)}</span>
+                <span>Receive Game Tokens ($ARC)</span>
+                <span>Game Balance: {parseFloat(arcBalance).toFixed(2)}</span>
               </div>
               <div className="input-wrapper">
                 <span className="input-currency">$ARC</span>
@@ -2091,7 +2091,7 @@ export default function App() {
               className="glow-btn-primary"
               style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', borderRadius: '12px', marginTop: '0.5rem' }}
             >
-              Confirm Swap
+              Confirm Deposit
             </button>
           </div>
         </div>
