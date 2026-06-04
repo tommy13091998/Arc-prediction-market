@@ -36,20 +36,6 @@ const NETWORKS = {
     blockExplorerUrls: ['https://testnet.arcscan.app'],
     defaultUsdcAddress: '0x3600000000000000000000000000000000000000',
     defaultMarketAddress: '0x5b950A7a251005b5e3720e1036b50aDddc0A31d8'
-  },
-  localhost: {
-    id: 'localhost',
-    chainId: '0x7a69', // 31337 in hex
-    chainName: 'Hardhat Localhost',
-    nativeCurrency: {
-      name: 'ETH',
-      symbol: 'ETH',
-      decimals: 18
-    },
-    rpcUrls: ['http://127.0.0.1:8545'],
-    blockExplorerUrls: [],
-    defaultUsdcAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    defaultMarketAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
   }
 };
 
@@ -650,6 +636,9 @@ export default function App() {
           } catch (addError) {
             if (addError.message && addError.message.includes("same RPC endpoint")) {
               throw new Error(`Bạn đang bị trùng cấu hình RPC của mạng ${activeConfig.chainName}. Hãy vào Cài đặt ví -> Xóa mạng trùng lặp rồi click Connect lại nhé!`);
+            }
+            if (addError.message && addError.message.includes("HTTPS url")) {
+              throw new Error(`Ví của bạn không hỗ trợ thêm tự động mạng Localhost qua giao thức HTTP. Vui lòng thêm mạng này thủ công trong phần cài đặt của ví!`);
             }
             throw addError;
           }
@@ -1254,7 +1243,6 @@ export default function App() {
             style={{ width: 'auto', padding: '0.45rem 1rem', fontSize: '0.85rem', height: '38px', borderRadius: '10px' }}
           >
             <option value="arc">Arc Testnet</option>
-            <option value="localhost">Hardhat Localhost</option>
           </select>
 
           {!isDemoMode && (
@@ -1280,13 +1268,15 @@ export default function App() {
             Swap
           </button>
           
-          <button 
-            onClick={() => setShowAdminPanel(true)} 
-            className="wallet-btn navbar-item-gradient"
-          >
-            <Shield size={16} />
-            Admin
-          </button>
+          {account && account.toLowerCase() === '0x5b950A7a251005b5e3720e1036b50aDddc0A31d8'.toLowerCase() && (
+            <button 
+              onClick={() => setShowAdminPanel(true)} 
+              className="wallet-btn navbar-item-gradient"
+            >
+              <Shield size={16} />
+              Admin
+            </button>
+          )}
 
           <button 
             onClick={() => setShowHistory(true)} 
@@ -1438,14 +1428,16 @@ export default function App() {
             />
           </div>
 
-          <button 
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className="glow-btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', borderRadius: '12px' }}
-          >
-            <PlusCircle size={18} />
-            Create Market
-          </button>
+          {account && account.toLowerCase() === '0x5b950A7a251005b5e3720e1036b50aDddc0A31d8'.toLowerCase() && (
+            <button 
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              className="glow-btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', borderRadius: '12px' }}
+            >
+              <PlusCircle size={18} />
+              Create Market
+            </button>
+          )}
         </div>
       </section>
 
