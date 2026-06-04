@@ -296,6 +296,7 @@ export default function App() {
   // Transaction History & Docs State
   const [showHistory, setShowHistory] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
+  const [showLiquidityModal, setShowLiquidityModal] = useState(false);
   const [txHistory, setTxHistory] = useState(() => {
     const saved = localStorage.getItem('pm_tx_history');
     return saved ? JSON.parse(saved) : [];
@@ -1864,10 +1865,7 @@ export default function App() {
                 <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
                   <button 
                     type="button"
-                    onClick={() => {
-                      const totalLiquidity = markets.reduce((sum, m) => sum + Number(m.liquidity || 0), 0);
-                      alert(`Tổng thanh khoản được nạp vào dự án hiện tại là: ${totalLiquidity.toLocaleString()} $ARC`);
-                    }}
+                    onClick={() => setShowLiquidityModal(true)}
                     className="wallet-btn navbar-item-gradient"
                     style={{ width: '100%', justifyContent: 'center', fontSize: '0.95rem' }}
                   >
@@ -2351,6 +2349,36 @@ export default function App() {
                 🔳 OKX Wallet
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Liquidity Modal */}
+      {showLiquidityModal && (
+        <div className="modal-overlay" onClick={() => setShowLiquidityModal(false)}>
+          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ width: '500px', maxWidth: '95vw', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxHeight: '80vh' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.5rem' }}>
+                <Layers size={24} style={{ color: 'var(--primary-color)' }} />
+                Liquidity Providers
+              </h2>
+              <button className="close-btn" onClick={() => setShowLiquidityModal(false)}>&times;</button>
+            </div>
+            
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '3rem 0' }}>
+                <Layers size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No liquidity deposits found for this project yet.</p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setShowLiquidityModal(false)}
+              className="glow-btn-primary"
+              style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', borderRadius: '12px', marginTop: '0.5rem' }}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
