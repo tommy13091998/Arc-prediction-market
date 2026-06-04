@@ -15,7 +15,8 @@ import {
   Layers,
   ArrowRightLeft,
   Shield,
-  Send
+  Send,
+  BookOpen
 } from 'lucide-react';
 
 import PredictionMarketArtifact from '../artifacts/contracts/PredictionMarket.sol/PredictionMarket.json';
@@ -214,8 +215,9 @@ export default function App() {
   const [selectedMarketId, setSelectedMarketId] = useState(0);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  // Transaction History State
+  // Transaction History & Docs State
   const [showHistory, setShowHistory] = useState(false);
+  const [showDocs, setShowDocs] = useState(false);
   const [txHistory, setTxHistory] = useState(() => {
     const saved = localStorage.getItem('pm_tx_history');
     return saved ? JSON.parse(saved) : [];
@@ -744,8 +746,19 @@ export default function App() {
     e.preventDefault();
     const amount = Number(inputAmount);
     if (isNaN(amount) || amount <= 0) {
-      alert("Please enter a valid amount");
+      alert("Vui lòng nhập số lượng hợp lệ.");
       return;
+    }
+
+    if (tradeTab === 'buy') {
+      if (amount < 0.01) {
+        alert("Số tiền cược tối thiểu là 0.01 $ARC.");
+        return;
+      }
+      if (amount > 5) {
+        alert("Số tiền cược tối đa là 5 $ARC.");
+        return;
+      }
     }
 
     if (isDemoMode) {
@@ -1314,6 +1327,14 @@ export default function App() {
               Admin
             </button>
           )}
+
+          <button 
+            onClick={() => setShowDocs(true)} 
+            className="wallet-btn navbar-item-gradient"
+          >
+            <BookOpen size={16} />
+            Docs
+          </button>
 
           <button 
             onClick={() => setShowHistory(true)} 
@@ -2244,6 +2265,43 @@ export default function App() {
                 🔳 OKX Wallet
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Docs Modal */}
+      {showDocs && (
+        <div className="modal-overlay" onClick={() => setShowDocs(false)}>
+          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ width: '500px', maxWidth: '95vw', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.5rem' }}>
+                <BookOpen size={24} style={{ color: 'var(--primary-color)' }} />
+                Rules & Guidelines
+              </h2>
+              <button className="close-btn" onClick={() => setShowDocs(false)}>&times;</button>
+            </div>
+            
+            <div style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+              <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>1. Betting Limits</h3>
+              <ul style={{ paddingLeft: '1.5rem', marginBottom: '1.5rem' }}>
+                <li style={{ marginBottom: '0.5rem' }}>During this testnet phase, the <strong>maximum</strong> bet is <strong>5 $ARC</strong> per order.</li>
+                <li>The <strong>minimum</strong> bet is <strong>0.01 $ARC</strong>.</li>
+              </ul>
+
+              <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>2. Deposit Guide</h3>
+              <p style={{ marginBottom: '1.5rem' }}>
+                All prediction orders on the platform require the use of our native <strong>Game Tokens ($ARC)</strong>. 
+                You must Deposit testnet USDC to convert it into $ARC before participating in any prediction market.
+              </p>
+            </div>
+
+            <button 
+              onClick={() => setShowDocs(false)}
+              className="glow-btn-primary"
+              style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', borderRadius: '12px', marginTop: '0.5rem' }}
+            >
+              I Understand
+            </button>
           </div>
         </div>
       )}
