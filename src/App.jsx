@@ -598,13 +598,22 @@ export default function App() {
         try {
           accounts = await targetProvider.request({ method: 'eth_requestAccounts' });
         } catch (reqErr) {
-          // OKX Wallet specific bug/error when non-EVM account is selected or wallet is locked
+          // Some wallets (like OKX overriding window.ethereum, or some mobile Dapp browsers) throw this specific error
           if (reqErr.code === 4001 && reqErr.message && reqErr.message.includes('at least one account')) {
             try {
-              // Fallback to legacy enable() which sometimes forces the UI to open correctly
-              accounts = await targetProvider.enable();
-            } catch (enableErr) {
-              throw new Error("Vui lòng mở tiện ích ví, chọn một tài khoản EVM (như Ethereum/BNB) và đảm bảo ví đã được mở khóa, sau đó thử lại!");
+              // Force the wallet to open permission prompt (works for EIP-2255 compatible wallets)
+              await targetProvider.request({
+                method: 'wallet_requestPermissions',
+                params: [{ eth_accounts: {} }]
+              });
+              accounts = await targetProvider.request({ method: 'eth_requestAccounts' });
+            } catch (permErr) {
+              try {
+                // Fallback to legacy enable()
+                accounts = await targetProvider.enable();
+              } catch (enableErr) {
+                throw new Error("Vui lòng mở tiện ích ví đang sử dụng, chọn một tài khoản mạng EVM (như Ethereum/BNB) và đảm bảo ví đã được mở khóa!");
+              }
             }
           } else {
             throw reqErr;
