@@ -226,8 +226,9 @@ export default function App() {
   }, [txHistory]);
   const [historySearchQuery, setHistorySearchQuery] = useState('');
 
-  // Wallet Selection State
+  // Wallet Selection & Profile State
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferAmount, setTransferAmount] = useState('');
@@ -1331,7 +1332,7 @@ export default function App() {
           </button>
           
           <button 
-            onClick={account ? disconnectWallet : () => setShowWalletModal(true)} 
+            onClick={account ? () => setShowProfileModal(true) : () => setShowWalletModal(true)} 
             className={`wallet-btn ${account ? 'connected' : 'glow-btn-primary'}`}
           >
             <Wallet size={16} />
@@ -2243,6 +2244,74 @@ export default function App() {
                 🔳 OKX Wallet
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Profile Modal */}
+      {showProfileModal && account && (
+        <div className="modal-overlay" onClick={() => setShowProfileModal(false)}>
+          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ width: '600px', maxWidth: '95vw', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxHeight: '80vh' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.5rem' }}>
+                <Wallet size={24} style={{ color: 'var(--primary-color)' }} />
+                User Profile
+              </h2>
+              <button className="close-btn" onClick={() => setShowProfileModal(false)}>&times;</button>
+            </div>
+            
+            <div style={{ background: 'rgba(0, 0, 0, 0.2)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Wallet Address</div>
+                <div style={{ fontFamily: 'monospace', fontSize: '1.1rem' }}>{account}</div>
+              </div>
+              <div style={{ display: 'flex', gap: '2rem' }}>
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.25rem' }}>USDC Balance</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{parseFloat(usdcBalance).toFixed(2)} USDC</div>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Game Tokens</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{parseFloat(arcBalance).toFixed(2)} $ARC</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Recent Activity</h3>
+              <div style={{ overflowY: 'auto', maxHeight: '250px', paddingRight: '0.5rem' }}>
+                {txHistory.filter(tx => tx.user && tx.user.toLowerCase() === account.toLowerCase()).length === 0 ? (
+                  <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>No transactions found for this account.</div>
+                ) : (
+                  <table className="market-table" style={{ width: '100%', fontSize: '0.9rem' }}>
+                    <thead>
+                      <tr>
+                        <th>Action</th>
+                        <th>Amount</th>
+                        <th>Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {txHistory.filter(tx => tx.user && tx.user.toLowerCase() === account.toLowerCase()).map(tx => (
+                        <tr key={tx.id}>
+                          <td><span className={`token-badge ${tx.action.includes('YES') ? 'yes' : 'no'}`}>{tx.action}</span></td>
+                          <td style={{ fontWeight: 'bold' }}>{tx.amount.toFixed(2)} $ARC</td>
+                          <td style={{ color: 'var(--text-muted)' }}>{new Date(tx.timestamp).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+
+            <button 
+              onClick={() => { disconnectWallet(); setShowProfileModal(false); }}
+              className="wallet-btn"
+              style={{ width: '100%', padding: '1rem', justifyContent: 'center', background: 'rgba(255, 60, 60, 0.1)', border: '1px solid rgba(255, 60, 60, 0.3)', color: '#ff5c5c', fontSize: '1.1rem', marginTop: 'auto' }}
+            >
+              Disconnect Wallet
+            </button>
           </div>
         </div>
       )}
