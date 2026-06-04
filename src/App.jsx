@@ -585,8 +585,36 @@ export default function App() {
     }
 
     try {
-      // Request account access FIRST before switching chains
-      await targetProvider.request({ method: 'eth_requestAccounts' });
+      // First, try to get existing connected accounts
+      let accounts = [];
+      try {
+        accounts = await targetProvider.request({ method: 'eth_accounts' });
+      } catch (e) {
+        console.warn("eth_accounts failed", e);
+      }
+
+      // If no accounts, request connection
+      if (!accounts || accounts.length === 0) {
+        try {
+          accounts = await targetProvider.request({ method: 'eth_requestAccounts' });
+        } catch (reqErr) {
+          // OKX Wallet specific bug/error when non-EVM account is selected or wallet is locked
+          if (reqErr.code === 4001 && reqErr.message && reqErr.message.includes('at least one account')) {
+            try {
+              // Fallback to legacy enable() which sometimes forces the UI to open correctly
+              accounts = await targetProvider.enable();
+            } catch (enableErr) {
+              throw new Error("Vui lòng mở tiện ích ví, chọn một tài khoản EVM (như Ethereum/BNB) và đảm bảo ví đã được mở khóa, sau đó thử lại!");
+            }
+          } else {
+            throw reqErr;
+          }
+        }
+      }
+
+      if (!accounts || accounts.length === 0) {
+        throw new Error("Không tìm thấy tài khoản nào. Vui lòng tạo hoặc mở khóa ví của bạn.");
+      }
 
       const activeConfig = NETWORKS[selectedNetwork] || NETWORKS.arc;
       // Prompt user to add/switch network
@@ -635,8 +663,9 @@ export default function App() {
       const balanceVal = await fetchBalance(userAddress, tempSigner, selectedNetwork, usdcAddress);
       setUsdcBalance(balanceVal);
     } catch (err) {
-      console.error(err);
-      alert(`Failed to connect wallet: ${err.message || err}. Continuing in demo mode.`);
+      console.error("Wallet connection error:", err);
+      const errorMsg = err.message || err;
+      alert(`Lỗi kết nối ví: ${errorMsg}. Đang tiếp tục ở chế độ demo.`);
     }
   };
 
