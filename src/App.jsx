@@ -594,6 +594,15 @@ export default function App() {
       const balanceVal = await fetchBalance(account, signer, selectedNetwork, usdcAddress);
       setUsdcBalance(balanceVal);
       
+      setTxHistory(prev => [{
+        id: tx.hash || `0x${Math.random().toString(16).slice(2, 10)}${Math.random().toString(16).slice(2, 10)}`,
+        user: account,
+        action: `Transfer USDC`,
+        amount: Number(transferAmount),
+        marketId: null,
+        timestamp: Date.now()
+      }, ...prev]);
+
       alert(`Chuyển thành công ${transferAmount} USDC tới ví ${transferAddress.substring(0,8)}...`);
       setShowTransferModal(false);
       setTransferAmount('');
@@ -633,6 +642,15 @@ export default function App() {
       const balanceVal = await fetchBalance(account, signer, selectedNetwork, usdcAddress);
       setUsdcBalance(balanceVal);
       
+      setTxHistory(prev => [{
+        id: tx.hash || `0x${Math.random().toString(16).slice(2, 10)}${Math.random().toString(16).slice(2, 10)}`,
+        user: account,
+        action: `Deposit USDC to $ARC`,
+        amount: Number(swapAmount),
+        marketId: null,
+        timestamp: Date.now()
+      }, ...prev]);
+
       alert(`Nạp tiền thành công! Bạn đã nhận ${swapAmount} $ARC.`);
       setShowSwapModal(false);
       setSwapAmount('');
@@ -662,6 +680,15 @@ export default function App() {
       
       setUsdcBalance((Number(usdcBalance) + Number(swapAmount)).toFixed(2));
       
+      setTxHistory(prev => [{
+        id: `0x${Math.random().toString(16).slice(2, 10)}${Math.random().toString(16).slice(2, 10)}`,
+        user: account,
+        action: `Withdraw $ARC to USDC`,
+        amount: Number(swapAmount),
+        marketId: null,
+        timestamp: Date.now()
+      }, ...prev]);
+
       alert(`Rút tiền thành công! Bạn đã nhận ${swapAmount} USDC.`);
       setShowSwapModal(false);
       setSwapAmount('');
