@@ -1243,12 +1243,26 @@ export default function App() {
 
   // Filtered Markets Selector
   const filteredMarkets = useMemo(() => {
-    return markets.filter(m => {
-      const matchesCategory = selectedCategory === 'All' || m.category === selectedCategory;
-      const matchesSearch = m.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            m.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
+    let result = markets;
+
+    if (selectedCategory === 'Top 5') {
+      result = [...markets].sort((a, b) => {
+        const volA = Number(a.yesReserves) + Number(a.noReserves);
+        const volB = Number(b.yesReserves) + Number(b.noReserves);
+        return volB - volA; // descending
+      }).slice(0, 5);
+    } else if (selectedCategory !== 'All') {
+      result = markets.filter(m => m.category === selectedCategory);
+    }
+
+    if (searchQuery) {
+      result = result.filter(m => 
+        m.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        m.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    return result;
   }, [markets, selectedCategory, searchQuery]);
 
   return (
@@ -1462,7 +1476,7 @@ export default function App() {
       {/* Interactive Controls & Category Tabs */}
       <section style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div className="categories-tabs">
-          {['All', 'Crypto', 'Tech', 'Politics', 'Sports'].map(cat => (
+          {['All', 'Top 5', 'Crypto', 'Tech', 'Politics', 'Sports'].map(cat => (
             <button 
               key={cat} 
               onClick={() => setSelectedCategory(cat)}
@@ -1768,25 +1782,19 @@ export default function App() {
                   </button>
                 </form>
 
-                {/* LP Subpanel for Adding Liquidity */}
-                <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
-                  <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <Layers size={14} /> Market Liquidity Pool
-                  </h4>
-                  <form onSubmit={handleLPAdd} style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input 
-                      type="number" 
-                      placeholder="Add $ARC liquidity" 
-                      value={tradeTab === 'lp' ? inputAmount : ''}
-                      onChange={(e) => { setTradeTab('lp'); setInputAmount(e.target.value); }}
-                      className="form-input"
-                      style={{ flex: 1, padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
-                      required
-                    />
-                    <button type="submit" className="tab-btn active" style={{ fontSize: '0.8rem', borderRadius: '10px' }}>
-                      Deposit LP
-                    </button>
-                  </form>
+                {/* LP Subpanel for Viewing Liquidity */}
+                <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      const totalLiquidity = markets.reduce((sum, m) => sum + Number(m.liquidity || 0), 0);
+                      alert(`Tổng thanh khoản được nạp vào dự án hiện tại là: ${totalLiquidity.toLocaleString()} $ARC`);
+                    }}
+                    className="wallet-btn navbar-item-gradient"
+                    style={{ width: '100%', justifyContent: 'center', fontSize: '0.95rem' }}
+                  >
+                    <Layers size={16} /> Market Liquidity Pool
+                  </button>
                 </div>
 
                 {/* Resolver controls (Available in Demo Mode OR if the user is the creator of the market on-chain) */}
