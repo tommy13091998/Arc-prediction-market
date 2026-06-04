@@ -154,6 +154,84 @@ const INITIAL_DEMO_MARKETS = [
     yesReserves: 2000 * 1e6,
     noReserves: 2000 * 1e6,
     totalLPSupply: 2000 * 1e6
+  },
+  {
+    id: 4,
+    creator: '0x1A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6P7Q8R9S0T',
+    question: 'Will Ethereum reach $10,000 by December 31, 2026?',
+    description: 'Resolves to YES if ETH reaches $10,000 on Binance at any point before the end of 2026. Otherwise NO.',
+    category: 'Crypto',
+    endTime: Math.floor(new Date('2026-12-31T23:59:59Z').getTime() / 1000),
+    resolved: false,
+    outcome: 0,
+    yesReserves: 5000 * 1e6,
+    noReserves: 1500 * 1e6,
+    totalLPSupply: 4000 * 1e6
+  },
+  {
+    id: 5,
+    creator: '0x3333333333333333333333333333333333333333',
+    question: 'Will OpenAI release GPT-5 before July 2026?',
+    description: 'Resolves to YES if OpenAI officially releases a model explicitly named GPT-5 before July 1, 2026.',
+    category: 'Tech',
+    endTime: Math.floor(new Date('2026-06-30T23:59:59Z').getTime() / 1000),
+    resolved: false,
+    outcome: 0,
+    yesReserves: 4500 * 1e6,
+    noReserves: 1000 * 1e6,
+    totalLPSupply: 3000 * 1e6
+  },
+  {
+    id: 6,
+    creator: '0x4444444444444444444444444444444444444444',
+    question: 'Will the US Federal Reserve cut interest rates below 3% in 2026?',
+    description: 'Resolves to YES if the Fed funds target rate drops below 3.00% at any point in 2026.',
+    category: 'Politics',
+    endTime: Math.floor(new Date('2026-12-31T23:59:59Z').getTime() / 1000),
+    resolved: false,
+    outcome: 0,
+    yesReserves: 1200 * 1e6,
+    noReserves: 3400 * 1e6,
+    totalLPSupply: 2500 * 1e6
+  },
+  {
+    id: 7,
+    creator: '0x5555555555555555555555555555555555555555',
+    question: 'Will LeBron James retire from the NBA after the 2025-2026 season?',
+    description: 'Resolves to YES if LeBron James officially announces his retirement from professional basketball before the start of the 26-27 season.',
+    category: 'Sports',
+    endTime: Math.floor(new Date('2026-10-01T23:59:59Z').getTime() / 1000),
+    resolved: false,
+    outcome: 0,
+    yesReserves: 2500 * 1e6,
+    noReserves: 1500 * 1e6,
+    totalLPSupply: 2000 * 1e6
+  },
+  {
+    id: 8,
+    creator: '0x1A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6P7Q8R9S0T',
+    question: 'Will a Spot Solana ETF be approved by the US SEC in 2026?',
+    description: 'Resolves to YES if the US Securities and Exchange Commission approves at least one Spot Solana ETF by the end of 2026.',
+    category: 'Crypto',
+    endTime: Math.floor(new Date('2026-12-31T23:59:59Z').getTime() / 1000),
+    resolved: false,
+    outcome: 0,
+    yesReserves: 3000 * 1e6,
+    noReserves: 3500 * 1e6,
+    totalLPSupply: 3500 * 1e6
+  },
+  {
+    id: 9,
+    creator: '0x3333333333333333333333333333333333333333',
+    question: 'Will Apple announce a foldable iPhone before 2027?',
+    description: 'Resolves to YES if Apple officially announces a foldable iPhone model during any event before January 1, 2027.',
+    category: 'Tech',
+    endTime: Math.floor(new Date('2026-12-31T23:59:59Z').getTime() / 1000),
+    resolved: false,
+    outcome: 0,
+    yesReserves: 800 * 1e6,
+    noReserves: 900 * 1e6,
+    totalLPSupply: 1000 * 1e6
   }
 ];
 
