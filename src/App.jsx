@@ -216,7 +216,14 @@ export default function App() {
 
   // Transaction History State
   const [showHistory, setShowHistory] = useState(false);
-  const [txHistory, setTxHistory] = useState(generateMockHistory());
+  const [txHistory, setTxHistory] = useState(() => {
+    const saved = localStorage.getItem('pm_tx_history');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('pm_tx_history', JSON.stringify(txHistory));
+  }, [txHistory]);
   const [historySearchQuery, setHistorySearchQuery] = useState('');
 
   // Wallet Selection State
@@ -226,6 +233,7 @@ export default function App() {
   const [transferAmount, setTransferAmount] = useState('');
   const [transferAddress, setTransferAddress] = useState('');
   const [swapAmount, setSwapAmount] = useState('');
+  const [depositTab, setDepositTab] = useState('deposit'); // 'deposit' or 'withdraw'
   const [arcBalance, setArcBalance] = useState(() => localStorage.getItem('pm_arc_balance') || '0.00');
 
   // Admin Payout State
@@ -549,6 +557,35 @@ export default function App() {
     } catch (err) {
       console.error(err);
       alert("Nạp tiền thất bại: " + (err.message || err));
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!account) {
+      alert("Vui lòng kết nối ví trước!");
+      return;
+    }
+    if (!swapAmount || isNaN(Number(swapAmount)) || Number(swapAmount) <= 0) {
+      alert("Vui lòng nhập số lượng hợp lệ.");
+      return;
+    }
+    if (Number(swapAmount) > Number(arcBalance)) {
+      alert("Số dư $ARC không đủ.");
+      return;
+    }
+    try {
+      const newArc = (Number(arcBalance) - Number(swapAmount)).toFixed(2);
+      setArcBalance(newArc);
+      localStorage.setItem('pm_arc_balance', newArc);
+      
+      setUsdcBalance((Number(usdcBalance) + Number(swapAmount)).toFixed(2));
+      
+      alert(`Rút tiền thành công! Bạn đã nhận ${swapAmount} USDC.`);
+      setShowSwapModal(false);
+      setSwapAmount('');
+    } catch (err) {
+      console.error(err);
+      alert("Rút tiền thất bại: " + (err.message || err));
     }
   };
 
@@ -1220,7 +1257,6 @@ export default function App() {
               </linearGradient>
             </defs>
             <path d="M 22 82 C 22 35, 38 18, 50 18 C 62 18, 78 35, 78 82" stroke="url(#logo-grad)" strokeWidth="13" strokeLinecap="round" />
-            <path d="M 78 52 H 44" stroke="url(#logo-grad)" strokeWidth="13" strokeLinecap="round" />
           </svg>
           <div style={{ whiteSpace: 'nowrap' }}>
             <h1 className="logo-title">ARC PREDICT</h1>
@@ -2047,13 +2083,30 @@ export default function App() {
               <button className="close-btn" onClick={() => setShowSwapModal(false)}>&times;</button>
             </div>
             
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+              <button 
+                className={`tab-btn ${depositTab === 'deposit' ? 'active' : ''}`}
+                onClick={() => setDepositTab('deposit')}
+                style={{ flex: 1, padding: '0.5rem' }}
+              >
+                Deposit
+              </button>
+              <button 
+                className={`tab-btn ${depositTab === 'withdraw' ? 'active' : ''}`}
+                onClick={() => setDepositTab('withdraw')}
+                style={{ flex: 1, padding: '0.5rem' }}
+              >
+                Withdraw
+              </button>
+            </div>
+            
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                <span>Deposit Amount</span>
-                <span>Wallet Balance: {parseFloat(usdcBalance).toFixed(2)}</span>
+                <span>{depositTab === 'deposit' ? 'Deposit Amount' : 'Withdraw Amount'}</span>
+                <span>{depositTab === 'deposit' ? `Wallet Balance: ${parseFloat(usdcBalance).toFixed(2)}` : `Game Balance: ${parseFloat(arcBalance).toFixed(2)}`}</span>
               </div>
               <div className="input-wrapper">
-                <span className="input-currency">USDC</span>
+                <span className="input-currency">{depositTab === 'deposit' ? 'USDC' : '$ARC'}</span>
                 <input 
                   type="number" 
                   className="input-box" 
@@ -2070,11 +2123,11 @@ export default function App() {
 
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                <span>Receive Game Tokens ($ARC)</span>
-                <span>Game Balance: {parseFloat(arcBalance).toFixed(2)}</span>
+                <span>{depositTab === 'deposit' ? 'Receive Game Tokens ($ARC)' : 'Receive USDC'}</span>
+                <span>{depositTab === 'deposit' ? `Game Balance: ${parseFloat(arcBalance).toFixed(2)}` : `Wallet Balance: ${parseFloat(usdcBalance).toFixed(2)}`}</span>
               </div>
               <div className="input-wrapper">
-                <span className="input-currency">$ARC</span>
+                <span className="input-currency">{depositTab === 'deposit' ? '$ARC' : 'USDC'}</span>
                 <input 
                   type="number" 
                   className="input-box" 
@@ -2087,11 +2140,11 @@ export default function App() {
             </div>
 
             <button 
-              onClick={handleSwap}
+              onClick={depositTab === 'deposit' ? handleSwap : handleWithdraw}
               className="glow-btn-primary"
               style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', borderRadius: '12px', marginTop: '0.5rem' }}
             >
-              Confirm Deposit
+              {depositTab === 'deposit' ? 'Confirm Deposit' : 'Confirm Withdraw'}
             </button>
           </div>
         </div>
