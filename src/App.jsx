@@ -262,29 +262,7 @@ const generateMockHistory = () => {
   return history.sort((a,b) => b.timestamp - a.timestamp);
 };
 
-// Helper to generate mock pending payouts
-const generateMockPayouts = () => {
-  return [
-    {
-      id: 1,
-      winnerAddress: '0x1234567890abcdef1234567890abcdef12345678',
-      marketName: 'Will Bitcoin exceed $120,000 by December 31, 2026?',
-      prizeAmount: 250.00
-    },
-    {
-      id: 2,
-      winnerAddress: '0x9876543210fedcba9876543210fedcba98765432',
-      marketName: 'Will the first crewed SpaceX Starship mission land on Mars before 2028?',
-      prizeAmount: 120.50
-    },
-    {
-      id: 3,
-      winnerAddress: '0xaaaabbbbccccddddeeeeffff0000111122223333',
-      marketName: 'Will France win the 2026 FIFA World Cup?',
-      prizeAmount: 450.00
-    }
-  ];
-};
+
 
 export default function App() {
   // Navigation & UI States
@@ -320,7 +298,7 @@ export default function App() {
 
   // Admin Payout State
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [pendingPayouts, setPendingPayouts] = useState(generateMockPayouts());
+  const [pendingPayouts, setPendingPayouts] = useState([]);
 
   // Web3 Connection States
   const [provider, setProvider] = useState(null);
@@ -827,6 +805,7 @@ export default function App() {
   }, [markets, selectedMarketId]);
 
   const priceStats = useMemo(() => {
+    if (!selectedMarket) return { yes: 50, no: 50 };
     const y = selectedMarket.yesReserves;
     const n = selectedMarket.noReserves;
     const total = y + n;
@@ -838,7 +817,7 @@ export default function App() {
 
   // Compute live estimates as user types in input box
   const tradeQuoteEstimate = useMemo(() => {
-    if (!inputAmount || isNaN(Number(inputAmount))) return 0;
+    if (!inputAmount || isNaN(Number(inputAmount)) || !selectedMarket) return 0;
     if (tradeTab === 'buy') {
       return buyQuote(selectedMarket, Number(inputAmount), tradeOutcome === 'yes');
     } else if (tradeTab === 'sell') {
@@ -1763,159 +1742,165 @@ export default function App() {
           </div>
 
           {/* Side panel for trading selected market */}
-          <div className="trading-panel glass-panel glowing">
-            <div className="panel-header">
-              <span className="category-badge" style={{ alignSelf: 'flex-start' }}>{selectedMarket.category}</span>
-              <h3 className="panel-title">{selectedMarket.question}</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                {selectedMarket.description}
-              </p>
-            </div>
-
-            {selectedMarket.resolved ? (
-              // RESOLVED STATE PANEL
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'center', padding: '1rem 0' }}>
-                <CheckCircle2 size={48} style={{ color: 'var(--yes-color)', margin: '0 auto' }} />
-                <div>
-                  <h4 style={{ fontSize: '1.2rem' }}>Market Resolved</h4>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '0.5rem 0', color: selectedMarket.outcome === 1 ? 'var(--yes-color)' : selectedMarket.outcome === 2 ? 'var(--no-color)' : 'var(--warning-color)' }}>
-                    {selectedMarket.outcome === 1 ? 'YES Wins' : selectedMarket.outcome === 2 ? 'NO Wins' : 'INVALID (50/50 Payout)'}
-                  </div>
-                </div>
-                
-                {/* Redemption Check */}
-                {((userPortfolio.yesShares[selectedMarketId] || 0) > 0 || 
-                  (userPortfolio.noShares[selectedMarketId] || 0) > 0 || 
-                  (userPortfolio.lpShares[selectedMarketId] || 0) > 0) && 
-                  !userPortfolio.redeemedMarkets[selectedMarketId] ? (
-                    <button 
-                      onClick={() => handleRedeem(selectedMarketId)}
-                      className="glow-btn-primary"
-                      style={{ padding: '0.85rem', borderRadius: '10px' }}
-                    >
-                      Redeem Winnings
-                    </button>
-                ) : (
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    {userPortfolio.redeemedMarkets[selectedMarketId] ? 'Winnings claimed!' : 'You have no shares in this market.'}
-                  </p>
-                )}
+          {selectedMarket ? (
+            <div className="trading-panel glass-panel glowing">
+              <div className="panel-header">
+                <span className="category-badge" style={{ alignSelf: 'flex-start' }}>{selectedMarket.category}</span>
+                <h3 className="panel-title">{selectedMarket.question}</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                  {selectedMarket.description}
+                </p>
               </div>
-            ) : (
-              // ACTIVE TRADING STATE PANEL
-              <>
-                <div className="panel-tabs" style={{ display: 'flex', width: '100%' }}>
-                  <div className="panel-tab-btn active" style={{ flex: 1, width: '100%', cursor: 'default', display: 'flex', justifyContent: 'center', textAlign: 'center' }}>
-                    BET
+
+              {selectedMarket.resolved ? (
+                // RESOLVED STATE PANEL
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'center', padding: '1rem 0' }}>
+                  <CheckCircle2 size={48} style={{ color: 'var(--yes-color)', margin: '0 auto' }} />
+                  <div>
+                    <h4 style={{ fontSize: '1.2rem' }}>Market Resolved</h4>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '0.5rem 0', color: selectedMarket.outcome === 1 ? 'var(--yes-color)' : selectedMarket.outcome === 2 ? 'var(--no-color)' : 'var(--warning-color)' }}>
+                      {selectedMarket.outcome === 1 ? 'YES Wins' : selectedMarket.outcome === 2 ? 'NO Wins' : 'INVALID (50/50 Payout)'}
+                    </div>
                   </div>
+                  
+                  {/* Redemption Check */}
+                  {((userPortfolio.yesShares[selectedMarketId] || 0) > 0 || 
+                    (userPortfolio.noShares[selectedMarketId] || 0) > 0 || 
+                    (userPortfolio.lpShares[selectedMarketId] || 0) > 0) && 
+                    !userPortfolio.redeemedMarkets[selectedMarketId] ? (
+                      <button 
+                        onClick={() => handleRedeem(selectedMarketId)}
+                        className="glow-btn-primary"
+                        style={{ padding: '0.85rem', borderRadius: '10px' }}
+                      >
+                        Redeem Winnings
+                      </button>
+                  ) : (
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      {userPortfolio.redeemedMarkets[selectedMarketId] ? 'Winnings claimed!' : 'You have no shares in this market.'}
+                    </p>
+                  )}
                 </div>
-
-                {/* YES / NO Outcome Toggle */}
-                <div className="trade-outcome-select">
-                  <button 
-                    onClick={() => setTradeOutcome('yes')}
-                    className={`outcome-btn yes ${tradeOutcome === 'yes' ? 'active' : ''}`}
-                  >
-                    <span>YES</span>
-                    <span className="price-subtext">{(priceStats.yes).toFixed(0)}¢</span>
-                  </button>
-                  <button 
-                    onClick={() => setTradeOutcome('no')}
-                    className={`outcome-btn no ${tradeOutcome === 'no' ? 'active' : ''}`}
-                  >
-                    <span>NO</span>
-                    <span className="price-subtext">{(priceStats.no).toFixed(0)}¢</span>
-                  </button>
-                </div>
-
-                {/* Input Fields */}
-                <form onSubmit={handleTradeSubmit} className="input-group">
-                  <div className="input-label-row">
-                    <span>{tradeTab === 'buy' ? '$ARC Amount' : 'Shares Amount'}</span>
-                    <span>
-                      Balance: {tradeTab === 'buy' 
-                        ? `${parseFloat(arcBalance).toFixed(2)} $ARC` 
-                        : `${((userPortfolio[tradeOutcome === 'yes' ? 'yesShares' : 'noShares'][selectedMarketId] || 0) / 1e6).toFixed(2)} Shares`
-                      }
-                    </span>
-                  </div>
-                  <div className="input-wrapper">
-                    <input 
-                      type="number" 
-                      placeholder="0.00" 
-                      value={inputAmount}
-                      onChange={(e) => setInputAmount(e.target.value)}
-                      className="input-box"
-                      required
-                    />
-                    <span className="input-currency">{tradeTab === 'buy' ? '$ARC' : 'Shares'}</span>
+              ) : (
+                // ACTIVE TRADING STATE PANEL
+                <>
+                  <div className="panel-tabs" style={{ display: 'flex', width: '100%' }}>
+                    <div className="panel-tab-btn active" style={{ flex: 1, width: '100%', cursor: 'default', display: 'flex', justifyContent: 'center', textAlign: 'center' }}>
+                      BET
+                    </div>
                   </div>
 
-                  {/* Estimation Info Details */}
-                  {inputAmount && Number(inputAmount) > 0 && (
-                    <div className="trade-details-box animate-fade-in">
-                      <div className="trade-detail-row">
-                        <span className="trade-detail-label">
-                          {tradeTab === 'buy' ? 'Expected Shares' : 'Expected Payout'}
-                        </span>
-                        <span className="trade-detail-value highlight">
-                          {tradeTab === 'buy' 
-                            ? `${tradeQuoteEstimate.toFixed(2)} YES/NO` 
-                            : `$${tradeQuoteEstimate.toFixed(2)} $ARC`
-                          }
-                        </span>
+                  {/* YES / NO Outcome Toggle */}
+                  <div className="trade-outcome-select">
+                    <button 
+                      onClick={() => setTradeOutcome('yes')}
+                      className={`outcome-btn yes ${tradeOutcome === 'yes' ? 'active' : ''}`}
+                    >
+                      <span>YES</span>
+                      <span className="price-subtext">{(priceStats.yes).toFixed(0)}¢</span>
+                    </button>
+                    <button 
+                      onClick={() => setTradeOutcome('no')}
+                      className={`outcome-btn no ${tradeOutcome === 'no' ? 'active' : ''}`}
+                    >
+                      <span>NO</span>
+                      <span className="price-subtext">{(priceStats.no).toFixed(0)}¢</span>
+                    </button>
+                  </div>
+
+                  {/* Input Fields */}
+                  <form onSubmit={handleTradeSubmit} className="input-group">
+                    <div className="input-label-row">
+                      <span>{tradeTab === 'buy' ? '$ARC Amount' : 'Shares Amount'}</span>
+                      <span>
+                        Balance: {tradeTab === 'buy' 
+                          ? `${parseFloat(arcBalance).toFixed(2)} $ARC` 
+                          : `${((userPortfolio[tradeOutcome === 'yes' ? 'yesShares' : 'noShares'][selectedMarketId] || 0) / 1e6).toFixed(2)} Shares`
+                        }
+                      </span>
+                    </div>
+                    <div className="input-wrapper">
+                      <input 
+                        type="number" 
+                        placeholder="0.00" 
+                        value={inputAmount}
+                        onChange={(e) => setInputAmount(e.target.value)}
+                        className="input-box"
+                        required
+                      />
+                      <span className="input-currency">{tradeTab === 'buy' ? '$ARC' : 'Shares'}</span>
+                    </div>
+
+                    {/* Estimation Info Details */}
+                    {inputAmount && Number(inputAmount) > 0 && (
+                      <div className="trade-details-box animate-fade-in">
+                        <div className="trade-detail-row">
+                          <span className="trade-detail-label">
+                            {tradeTab === 'buy' ? 'Expected Shares' : 'Expected Payout'}
+                          </span>
+                          <span className="trade-detail-value highlight">
+                            {tradeTab === 'buy' 
+                              ? `${tradeQuoteEstimate.toFixed(2)} YES/NO` 
+                              : `$${tradeQuoteEstimate.toFixed(2)} $ARC`
+                            }
+                          </span>
+                        </div>
+                        <div className="trade-detail-row">
+                          <span className="trade-detail-label">Average Price</span>
+                          <span className="trade-detail-value">
+                            {tradeTab === 'buy' 
+                              ? `${((Number(inputAmount) / tradeQuoteEstimate) * 100).toFixed(0)}¢` 
+                              : `${((tradeQuoteEstimate / Number(inputAmount)) * 100).toFixed(0)}¢`
+                            }
+                          </span>
+                        </div>
+                        <div className="trade-detail-row">
+                          <span className="trade-detail-label">Max Payout</span>
+                          <span className="trade-detail-value" style={{ color: 'var(--yes-color)' }}>
+                            {tradeTab === 'buy' ? `$${tradeQuoteEstimate.toFixed(2)}` : '-' }
+                          </span>
+                        </div>
                       </div>
-                      <div className="trade-detail-row">
-                        <span className="trade-detail-label">Average Price</span>
-                        <span className="trade-detail-value">
-                          {tradeTab === 'buy' 
-                            ? `${((Number(inputAmount) / tradeQuoteEstimate) * 100).toFixed(0)}¢` 
-                            : `${((tradeQuoteEstimate / Number(inputAmount)) * 100).toFixed(0)}¢`
-                          }
-                        </span>
-                      </div>
-                      <div className="trade-detail-row">
-                        <span className="trade-detail-label">Max Payout</span>
-                        <span className="trade-detail-value" style={{ color: 'var(--yes-color)' }}>
-                          {tradeTab === 'buy' ? `$${tradeQuoteEstimate.toFixed(2)}` : '-' }
-                        </span>
+                    )}
+
+                    <button type="submit" className="glow-btn-primary action-btn">
+                      {`Select ${tradeOutcome.toUpperCase()}`}
+                    </button>
+                  </form>
+
+                  {/* LP Subpanel for Viewing Liquidity */}
+                  <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                    <button 
+                      type="button"
+                      onClick={() => setShowLiquidityModal(true)}
+                      className="wallet-btn navbar-item-gradient"
+                      style={{ width: '100%', justifyContent: 'center', fontSize: '0.95rem' }}
+                    >
+                      <Layers size={16} /> Market Liquidity Pool
+                    </button>
+                  </div>
+
+                  {/* Resolver controls (Available in Demo Mode OR if the user is the creator of the market on-chain) */}
+                  {(isDemoMode || (!isDemoMode && selectedMarket.creator.toLowerCase() === account.toLowerCase())) && (
+                    <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                      <h4 style={{ fontSize: '0.9rem', color: 'var(--warning-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Award size={14} /> Resolution Oracle {(!isDemoMode && selectedMarket.creator.toLowerCase() === account.toLowerCase()) && "(You are Creator)"}
+                      </h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                        <button onClick={() => handleResolveMarket(selectedMarketId, 1)} className="action-link" style={{ fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.08)', padding: '0.25rem', borderRadius: '4px' }}>YES</button>
+                        <button onClick={() => handleResolveMarket(selectedMarketId, 2)} className="action-link" style={{ fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.08)', padding: '0.25rem', borderRadius: '4px' }}>NO</button>
+                        <button onClick={() => handleResolveMarket(selectedMarketId, 3)} className="action-link" style={{ fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.08)', padding: '0.25rem', borderRadius: '4px' }}>INVALID</button>
                       </div>
                     </div>
                   )}
-
-                  <button type="submit" className="glow-btn-primary action-btn">
-                    {`Select ${tradeOutcome.toUpperCase()}`}
-                  </button>
-                </form>
-
-                {/* LP Subpanel for Viewing Liquidity */}
-                <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-                  <button 
-                    type="button"
-                    onClick={() => setShowLiquidityModal(true)}
-                    className="wallet-btn navbar-item-gradient"
-                    style={{ width: '100%', justifyContent: 'center', fontSize: '0.95rem' }}
-                  >
-                    <Layers size={16} /> Market Liquidity Pool
-                  </button>
-                </div>
-
-                {/* Resolver controls (Available in Demo Mode OR if the user is the creator of the market on-chain) */}
-                {(isDemoMode || (!isDemoMode && selectedMarket.creator.toLowerCase() === account.toLowerCase())) && (
-                  <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-                    <h4 style={{ fontSize: '0.9rem', color: 'var(--warning-color)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Award size={14} /> Resolution Oracle {(!isDemoMode && selectedMarket.creator.toLowerCase() === account.toLowerCase()) && "(You are Creator)"}
-                    </h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-                      <button onClick={() => handleResolveMarket(selectedMarketId, 1)} className="action-link" style={{ fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.08)', padding: '0.25rem', borderRadius: '4px' }}>YES</button>
-                      <button onClick={() => handleResolveMarket(selectedMarketId, 2)} className="action-link" style={{ fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.08)', padding: '0.25rem', borderRadius: '4px' }}>NO</button>
-                      <button onClick={() => handleResolveMarket(selectedMarketId, 3)} className="action-link" style={{ fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.08)', padding: '0.25rem', borderRadius: '4px' }}>INVALID</button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="trading-panel glass-panel glowing" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
+              <p style={{ color: 'var(--text-secondary)' }}>No active markets found on this network.</p>
+            </div>
+          )}
         </section>
       )}
 
